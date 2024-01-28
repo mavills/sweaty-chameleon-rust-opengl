@@ -28,7 +28,7 @@ fn main() {
         )
         .unwrap();
     // Set the font size
-    face.set_char_size(40 * 64, 0, 50, 0).unwrap();
+    face.set_char_size(40 * 64, 40 * 64, 50, 50).unwrap();
     // Load a character
     face.load_char('A' as usize, LoadFlag::RENDER).unwrap();
     // Get the glyph instance
@@ -44,22 +44,22 @@ fn main() {
     implement_vertex!(Vertex, position, tex_coords);
     let vertex1 = Vertex {
         // bottom left
-        position: [-0.05, -0.05],
+        position: [-0.5, -0.5],
         tex_coords: [0.0, 0.0],
     };
     let vertex2 = Vertex {
         // top left
-        position: [-0.05, 0.05],
+        position: [-0.5, 0.5],
         tex_coords: [0.0, 1.0],
     };
     let vertex3 = Vertex {
         // top right
-        position: [0.05, 0.05],
+        position: [0.5, 0.5],
         tex_coords: [1.0, 1.0],
     };
     let vertex4 = Vertex {
         //bottom right
-        position: [0.05, -0.05],
+        position: [0.5, -0.5],
         tex_coords: [1.0, 0.0],
     };
     let shape = vec![vertex1, vertex2, vertex3, vertex4];
@@ -104,10 +104,10 @@ fn main() {
 
         void main() {
             vec4 texColor = texture(tex, v_tex_coords);
-            if(texColor.x < 0.5)
-                discard;
-            color = vec4(1.0);
-            // color = vec4(texture(tex, v_tex_coords).x, 1.0, 1.0, texture(tex, v_tex_coords).x);
+            // if(texColor.x < 0.001)
+            //     discard;
+            // color = vec4(1.0);
+            color = vec4(texColor.rrr, texture(tex, v_tex_coords).x);
         }
     "#;
     let program =
@@ -158,7 +158,8 @@ fn main() {
 
                         let mut target = display.draw();
                         target.clear_color(0.0, 0.0, 1.0, 1.0);
-                        let uniforms = uniform! { x_off: x_off, tex: &texture};
+                        let uniforms = uniform! { 
+                            x_off: x_off, tex: glium::uniforms::Sampler::new(&texture).magnify_filter(glium::uniforms::MagnifySamplerFilter::Linear),};
                         target
                             .draw(
                                 &vertex_buffer,
