@@ -23,14 +23,14 @@ fn main() {
     // Load a font face
     let face = lib
         .new_face(
-            "/home/stijn/documents/repositories/imgui/misc/fonts/DroidSans.ttf",
+            "/home/stijn/documents/repositories/imgui/misc/fonts/Cousine-Regular.ttf",
             0,
         )
         .unwrap();
     // Set the font size
-    face.set_char_size(40 * 64, 40 * 64, 50, 50).unwrap();
+    face.set_char_size(12*64, 0, 141, 0).unwrap();
     // Load a character
-    face.load_char('A' as usize, LoadFlag::RENDER).unwrap();
+    face.load_char('a' as usize, LoadFlag::RENDER).unwrap();
     // Get the glyph instance
     let glyph = face.glyph();
     // do_something_with_bitmap(glyph.bitmap());
@@ -42,25 +42,26 @@ fn main() {
     }
 
     implement_vertex!(Vertex, position, tex_coords);
+    let scale = 0.02;
     let vertex1 = Vertex {
         // bottom left
-        position: [-0.5, -0.5],
-        tex_coords: [0.0, 0.0],
+        position: [-scale, -scale],
+        tex_coords: [0.0, 1.0],
     };
     let vertex2 = Vertex {
         // top left
-        position: [-0.5, 0.5],
-        tex_coords: [0.0, 1.0],
+        position: [-scale, scale],
+        tex_coords: [0.0, 0.0],
     };
     let vertex3 = Vertex {
         // top right
-        position: [0.5, 0.5],
-        tex_coords: [1.0, 1.0],
+        position: [scale, scale],
+        tex_coords: [1.0, 0.0],
     };
     let vertex4 = Vertex {
         //bottom right
-        position: [0.5, -0.5],
-        tex_coords: [1.0, 0.0],
+        position: [scale, -scale],
+        tex_coords: [1.0, 1.0],
     };
     let shape = vec![vertex1, vertex2, vertex3, vertex4];
 
@@ -90,7 +91,7 @@ fn main() {
         void main() {
             v_tex_coords = tex_coords;
             vec2 pos = position;
-            pos.x += x_off;
+            // pos.x += x_off;
             gl_Position = vec4(pos, 0.0, 1.0);
         }
     "#;
@@ -114,9 +115,14 @@ fn main() {
         glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None)
             .unwrap();
     let bitmap = glyph.bitmap();
+    let mut new_array: Vec<u8> = Vec::new();
+    for i in bitmap.buffer() {
+        new_array.push(*i);
+    }
 
-    let mut image = glium::texture::RawImage2d::from_raw_rgba_reversed(
-        &bitmap.buffer(),
+    // glium::texture::RawImage2d::
+    let mut image = glium::texture::RawImage2d::from_raw_rgba(
+        new_array,
         (bitmap.width() as u32, bitmap.rows() as u32),
     );
     println!("{:?}", bitmap.buffer());
@@ -159,7 +165,7 @@ fn main() {
                         let mut target = display.draw();
                         target.clear_color(0.0, 0.0, 1.0, 1.0);
                         let uniforms = uniform! { 
-                            x_off: x_off, tex: glium::uniforms::Sampler::new(&texture).magnify_filter(glium::uniforms::MagnifySamplerFilter::Linear),};
+                            x_off: x_off, tex: glium::uniforms::Sampler::new(&texture).magnify_filter(glium::uniforms::MagnifySamplerFilter::Nearest),};
                         target
                             .draw(
                                 &vertex_buffer,
